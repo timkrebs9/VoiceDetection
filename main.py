@@ -46,7 +46,8 @@ if __name__ == '__main__':
 
     wav_features = get_features(signal=sig, sample_rate=fs)
     print(wav_features)
-
+    plt.plot(wav_features)
+    plt.show()
     # get voiced frames
         #energy, vad, voiced = naive_frame_energy_vad(sig, fs, threshold=-20, win_len=0.025, win_hop=0.025)
     
