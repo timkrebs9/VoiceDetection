@@ -32,28 +32,27 @@ def normalize_audio(audio):
 
 if __name__ == '__main__':
 
-    filename = 'OSR_us_000_0060_8k.wav'
+    # fs = 8kHz, Mono
+    filename = 'Hello2.wav'
     
     #R ead audio file in array
     fs, sig = scipy.io.wavfile.read("OSR/"+filename)
 
-
+    
 
 
     # Filter the Signal with Low Pass Filter
-        #sig = movingAverage(x=sig, sr=fs, cutoff=8000)
-        #sig = preemphasis(x=sig, alpha= 0.97)
+        #sig = movingAverage(x=sig, sr=fs, cutoff)
 
-    wav_features = get_features(signal=sig, sample_rate=fs)
-    print(wav_features)
-    plt.plot(wav_features)
-    plt.show()
+    #x = get_features(signal=sig, sample_rate=fs)
+    
+    
     # get voiced frames
-        #energy, vad, voiced = naive_frame_energy_vad(sig, fs, threshold=-20, win_len=0.025, win_hop=0.025)
+    energy, vad, voiced = naive_frame_energy_vad(sig, fs, threshold=-20, win_len=0.025, win_hop=0.025)
     
     
     # plot results
-        #multi_plots(data=[sig, energy, vad, voiced], titles=["Input signal (voiced + silence)", "Short time energy", "Voice activity detection", "Output signal (voiced only)"], fs=fs, plot_rows=4, step=1)
+    multi_plots(data=[sig, energy, vad, voiced], titles=["Input signal (voiced + silence)", "Short time energy", "Voice activity detection", "Output signal (voiced only)"], fs=fs, plot_rows=4, step=1)
 
     # save voiced signal
         #scipy.io.wavfile.write("rame_energy_vad"+ filename, fs,  np.array(voiced, dtype=sig.dtype))
