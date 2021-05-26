@@ -25,22 +25,18 @@ def framing(sig, fs, win_len, win_hop):
         Uses the stride trick to accelerate the processing.
     """
     # run checks and assertions
-    if win_len < win_hop: print("ParameterError: win_len must be larger than win_hop.")
-
-    # compute frame length and frame step (convert from seconds to samples)
-    frame_length = win_len * fs
-    frame_step = win_hop * fs
+    frame_length, frame_step = win_len * fs, win_hop * fs  # Convert from seconds to samples
     signal_length = len(sig)
-    frames_overlap = frame_length - frame_step
+    frame_length = int(round(frame_length))
+    frame_step = int(round(frame_step))
+    num_frames = int(np.ceil(float(np.abs(signal_length - frame_length)) / frame_step))  # Make sure that we have at least 1 frame
 
-    # compute number of frames and left sample in order to pad if needed to make
-    # sure all frames have equal number of samples  without truncating any samples
-    # from the original signal
-    rest_samples = np.abs(signal_length - frames_overlap) % np.abs(frame_length - frames_overlap)
-    pad_signal = np.append(sig, np.array([0] * int(frame_step - rest_samples) * int(rest_samples != 0.)))
+    pad_signal_length = num_frames * frame_step + frame_length
+    z = np.zeros((pad_signal_length - signal_length))
+    pad_signal = np.append(sig, z) # Pad Signal to make sure that all frames have equal number of samples without truncating any samples from the original signal
 
-    # apply stride trick
-    frames = stride_trick(pad_signal, int(frame_length), int(frame_step))
+    indices = np.tile(np.arange(0, frame_length), (num_frames, 1)) + np.tile(np.arange(0, num_frames * frame_step, frame_step), (frame_length, 1)).T
+    frames = pad_signal[indices.astype(np.int32, copy=False)]
+
     return frames, frame_length
-
 
