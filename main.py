@@ -48,11 +48,11 @@ if __name__ == '__main__':
     
     
     # get voiced frames
-    energy, vad, voiced = naive_frame_energy_vad(sig, fs, threshold=-20, win_len=0.025, win_hop=0.025)
+        #energy, vad, voiced = naive_frame_energy_vad(sig, fs, threshold=-20, win_len=0.025, win_hop=0.025)
     
     
     # plot results
-    multi_plots(data=[sig, energy, vad, voiced], titles=["Input signal (voiced + silence)", "Short time energy", "Voice activity detection", "Output signal (voiced only)"], fs=fs, plot_rows=4, step=1)
+        #multi_plots(data=[sig, energy, vad, voiced], titles=["Input signal (voiced + silence)", "Short time energy", "Voice activity detection", "Output signal (voiced only)"], fs=fs, plot_rows=4, step=1)
 
     # save voiced signal
         #scipy.io.wavfile.write("rame_energy_vad"+ filename, fs,  np.array(voiced, dtype=sig.dtype))
