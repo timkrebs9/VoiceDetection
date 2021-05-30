@@ -2,8 +2,9 @@ import numpy as np
 import scipy
 import matplotlib.pyplot as plt
 
-from utils.frame.framing import framing
 
+from utils.frame.framing import framing
+from utils.math.strideTrick import stride_trick
 
 
 def normalizedShortTimeEnergy(frames):
@@ -57,6 +58,7 @@ def fft_plot(audio, sampling_rate):
     plt.xlabel("Frequenz")
     plt.ylabel("Magnitude")
     return plt.show()
+
 
 def fft2(audio, samplerate):
     n = len(audio)
