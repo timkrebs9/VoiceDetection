@@ -3,6 +3,7 @@ import numpy as np
 
 
 def forward(V, a, b, initial_distribution):
+    
     alpha = np.zeros((V.shape[0], a.shape[0]))
     alpha[0, :] = initial_distribution * b[:, V[0]]
 
