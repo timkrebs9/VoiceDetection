@@ -9,6 +9,7 @@ def backward(V, a, b):
     # setting beta(T) = 1
     beta[V.shape[0] - 1] = np.ones((a.shape[0]))
 
+    
     # Loop in backward way from T-1 to
     # Due to python indexing the actual loop will be T-2 to 0
     for t in range(V.shape[0] - 2, -1, -1):
