@@ -44,7 +44,7 @@ if __name__ == '__main__':
     # Filter the Signal with Low Pass Filter
         #sig = movingAverage(x=sig, sr=fs, cutoff)
 
-    #x = get_features(signal=sig, sample_rate=fs)
+    x = get_features(signal=sig, sample_rate=fs)
     
     
     # get voiced frames
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     
     
     # plot results
-    #multi_plots(data=[sig, energy, vad, voiced], titles=["Input signal (voiced + silence)", "Short time energy", "Voice activity detection", "Output signal (voiced only)"], fs=fs, plot_rows=4, step=1)
+    multi_plots(data=[sig, energy, vad, voiced], titles=["Input signal (voiced + silence)", "Short time energy", "Voice activity detection", "Output signal (voiced only)"], fs=fs, plot_rows=4, step=1)
 
     # save voiced signal
     #scipy.io.wavfile.write("rame_energy_vad"+ filename, fs,  np.array(voiced, dtype=sig.dtype))
