@@ -2,6 +2,7 @@ import numpy as np
 
 
 def viterbi(V, a, b, initial_distribution):
+    
     T = V.shape[0]
     M = a.shape[0]
 
