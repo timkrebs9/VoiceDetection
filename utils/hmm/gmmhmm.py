@@ -1,42 +1,106 @@
 import numpy as np
-from hmmlearn import hmm
+from scipy.stats import norm, multivariate_normal
 
-def trainer(dataset, N=5):
-    # N = states of model
-    # A = Übergangsmatrix
-    # pi = initiale Wahrscheinlichkeit
-    # Each word get a single GMM Model
-    Models = {}
-    states = 4
-    a = 1.0/(states-2)
-    tmp_p = 1.0/(states-2)
-    transmatPrior = np.array([[tmp_p, tmp_p, tmp_p, 0 ,0], \
-                                [0, tmp_p, tmp_p, tmp_p , 0], \
-                                [0, 0, tmp_p, tmp_p,tmp_p], \
-                                [0, 0, 0, 0.5, 0.5], \
-                                [0, 0, 0, 0, 1]],dtype=np.float)
+class GMM:
+    """
+    Full covariance Gaussian Mixture Model,
+    trained using Expectation Maximization.
 
+    Parameters
+    ----------
+    n_components : int
+        Number of clusters/mixture components in which the data will be
+        partitioned into.
 
-    _A = np.array([[1/3, 1/3, 1/3, 0],
-                 [0, 1/3, 1/3, 1/3],
-                 [0, 0, 0.5, 0.5],
-                 [0, 0, 0, 1]],dtype=np.float32)
+    n_iters : int
+        Maximum number of iterations to run the algorithm.
 
-    _pi = np.array([1, 0, 0, 0], dtype=np.float32) 
+    tol : float
+        Tolerance. If the log-likelihood between two iterations is smaller than
+        the specified tolerance level, the algorithm will stop performing the
+        EM optimization.
 
-    # Each label in the dataset get a HMM Model
-    for label in dataset.keys():
-        model = hmm.GMMHMM(n_components=states, n_mix=4, \
-                           transmat_prior=_A, startprob_prior=_pi, \
-                           covariance_type='diag')
-        trainData = dataset[label]
-        length = np.zeros([len(trainData), ], dtype=np.int)
-        for m in range(len(trainData)):
-            length[m] = trainData[m].shape[0]
-        trainData = np.vstack(trainData)
-        model.fit(trainData, lengths=length)  # get optimal parameters
-        Models[label] = model
-    return Models
+    seed : int
+        Seed / random state used to initialize the parameters.
+    """
 
+    def __init__(self, n_components: int, n_iters: int, tol: float, seed: int):
+        self.n_components = n_components
+        self.n_iters = n_iters
+        self.tol = tol
+        self.seed = seed
 
+    def fit(self, X):
 
+        # data's dimensionality and responsibility vector
+        n_row, n_col = X.shape     
+        self.resp = np.zeros((n_row, self.n_components))
+
+        # initialize parameters
+        np.random.seed(self.seed)
+        chosen = np.random.choice(n_row, self.n_components, replace = False)
+        self.means = X[chosen]
+        self.weights = np.full(self.n_components, 1 / self.n_components)
+        
+        # for np.cov, rowvar = False, 
+        # indicates that the rows represents obervation
+        shape = self.n_components, n_col, n_col
+        self.covs = np.full(shape, np.cov(X, rowvar = False))
+
+        log_likelihood = 0
+        self.converged = False
+        self.log_likelihood_trace = []      
+
+        for i in range(self.n_iters):
+            log_likelihood_new = self._do_estep(X)
+            self._do_mstep(X)
+
+            if abs(log_likelihood_new - log_likelihood) <= self.tol:
+                self.converged = True
+                break
+  
+            log_likelihood = log_likelihood_new
+            self.log_likelihood_trace.append(log_likelihood)
+
+        return self
+
+    def _do_estep(self, X):
+        """
+        E-step: compute responsibilities,
+        update resp matrix so that resp[j, k] is the responsibility of cluster k for data point j,
+        to compute likelihood of seeing data point j given cluster k, use multivariate_normal.pdf
+        """
+        self._compute_log_likelihood(X)
+        log_likelihood = np.sum(np.log(np.sum(self.resp, axis = 1)))
+
+        # normalize over all possible cluster assignments
+        self.resp = self.resp / self.resp.sum(axis = 1, keepdims = 1)
+        return log_likelihood
+
+    def _compute_log_likelihood(self, X):
+        for k in range(self.n_components):
+            prior = self.weights[k]
+            likelihood = multivariate_normal(self.means[k], self.covs[k]).pdf(X)
+            self.resp[:, k] = prior * likelihood
+
+        return self
+
+    def _do_mstep(self, X):
+        """M-step, update parameters"""
+
+        # total responsibility assigned to each cluster, N^{soft}
+        resp_weights = self.resp.sum(axis = 0)
+        
+        # weights
+        self.weights = resp_weights / X.shape[0]
+
+        # means
+        weighted_sum = np.dot(self.resp.T, X)
+        self.means = weighted_sum / resp_weights.reshape(-1, 1)
+        # covariance
+        for k in range(self.n_components):
+            diff = (X - self.means[k]).T
+            weighted_sum = np.dot(self.resp[:, k] * diff, diff.T)
+            self.covs[k] = weighted_sum / resp_weights[k]
+            
+        return self
